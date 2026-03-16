@@ -1,0 +1,23 @@
+id: FT-WS-001
+title: Workspace Discovery and Domain Model Sourcing
+status: completed
+satisfies:
+  - REQ-F-WS-001
+  - REQ-F-WS-002
+  - REQ-F-WS-003
+  - REQ-F-WS-004
+  - REQ-F-WS-005
+  - REQ-F-WS-006
+  - REQ-F-WS-007
+  - REQ-F-WS-008
+  - REQ-F-WS-010
+  - REQ-F-WS-011
+  - REQ-F-WS-012
+  - REQ-F-WS-016
+description: |
+  Foundation layer. Discovers abiogenesis projects by scanning the filesystem
+  for .genesis/genesis.yml. Loads the GTL Package via two-path acquisition:
+  F_D (gen describe) preferred, F_P synthesis fallback. Caches domain model
+  keyed on kernel version. Persists project recency list. Exposes project list
+  UI with name, path, convergence state, pending gate count, last event time.
+dependencies: []

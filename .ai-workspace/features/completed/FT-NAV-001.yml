@@ -1,0 +1,21 @@
+id: FT-NAV-001
+title: Navigation Handles — Every ID is Clickable
+status: completed
+satisfies:
+  - REQ-F-NAV-001
+  - REQ-F-NAV-002
+  - REQ-F-NAV-003
+  - REQ-F-NAV-004
+  - REQ-F-NAV-005
+description: |
+  Core product invariant: every visible technical identifier is a navigation
+  handle into canonical detail. REQ-* key → feature vector(s) that satisfy it
+  and code/test files that tag it. Edge name → evaluator list, gap state, event
+  history. Event → full payload, linked feature, linked edge. Feature ID →
+  feature detail, REQ coverage, linked events. Evaluator name → description,
+  category, last F_D result or fp_assessment.
+dependencies:
+  - FT-SPEC-001
+  - FT-STATE-001
+  - FT-EVT-001
+  - FT-FEAT-001

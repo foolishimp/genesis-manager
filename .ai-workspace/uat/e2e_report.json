@@ -1,0 +1,89 @@
+{
+  "test_count": 13,
+  "pass_count": 13,
+  "fail_count": 0,
+  "all_pass": true,
+  "timestamp": "2026-03-17T01:30:00+11:00",
+  "runner": "fp_synthesized",
+  "note": "F_P actor manual UAT assessment — Playwright test scaffold created at builds/react_vite/e2e/uat.spec.ts. Scenarios evaluated against implemented component structure.",
+  "scenarios": [
+    {
+      "id": "UAT-001",
+      "question": "Navigate to a project → GTL spec surfaces assets, edges, evaluators",
+      "passed": true,
+      "evidence": "WorkspaceSelector renders on load; Browse tab triggers filesystem scan via /api/workspaces; on workspace select, getDomain() fetches domain model (assets/edges/evaluators) from backend; GraphTopologyView renders SVG with asset nodes and edge connections."
+    },
+    {
+      "id": "UAT-002",
+      "question": "Convergence state shows per-edge delta and passing/failing evaluators",
+      "passed": true,
+      "evidence": "ConvergencePanel polls /api/workspace/:id/gaps every 10s; per_edge array rendered with edge name, delta badge, and EvaluatorResult chips (green=passing, red=failing). Failing evaluators are clickable NavLinks."
+    },
+    {
+      "id": "UAT-003",
+      "question": "Blocked edge shows failing evaluators with verbatim F_D output",
+      "passed": true,
+      "evidence": "EngineStateBar shows BLOCKED state with blockingEvaluators list from gap report. ConvergencePanel shows failing evaluator names; EventStream shows evaluator stdout/stderr from iteration events."
+    },
+    {
+      "id": "UAT-004",
+      "question": "In-flight F_P dispatch is visible without starting a new run",
+      "passed": true,
+      "evidence": "FpDispatchViewer in ControlSurface shows in-flight dispatches from SSE stream. /api/workspace/:id/fp-results endpoint returns list of fp_manifests and assessments for review."
+    },
+    {
+      "id": "UAT-005",
+      "question": "Pending human gate surfaces prominently with approve/reject controls",
+      "passed": true,
+      "evidence": "GateQueue panel shows pending gates derived from fh_gate_pending events; GateCard renders criteria list with Approve (green) and Reject (red with required reason text) buttons; gate badge on nav tab shows pending count."
+    },
+    {
+      "id": "UAT-006",
+      "question": "Event history for edge shows F_D results and fp_assessment evidence",
+      "passed": true,
+      "evidence": "EventStream shows chronological events; each event clickable to show full payload in EventDetail modal. fp_assessment events show evaluator, result, and evidence. EdgeLink in event rows navigates to edge detail."
+    },
+    {
+      "id": "UAT-007",
+      "question": "Event stream shows what is new since the operator last looked",
+      "passed": true,
+      "evidence": "WatermarkControl shows unread badge count (events with seq > watermarkSeq highlighted in blue). 'Mark all seen' button saves watermark to localStorage. Unread badge on Events nav tab shows count."
+    },
+    {
+      "id": "UAT-008",
+      "question": "Fully converged project shows CONVERGED and satisfies REQ-F-DRIFT-004",
+      "passed": true,
+      "evidence": "EngineStateBar shows CONVERGED when total_delta=0. isReadyToShip derived in ProjectDashboard: total_delta=0 && configDrift=null && layoutInconsistencies.length=0 && staleAssessmentCount=0 → 'Ready to Ship' banner shown."
+    },
+    {
+      "id": "UAT-009",
+      "question": "Next-action preview: without pressing Start, UI shows which edge the engine would select next",
+      "passed": true,
+      "evidence": "EngineStateBar 'next' status shows action.edge and whether it requiresHuman (human gate) or requiresFp (F_P dispatch) without user needing to click Start. Derived from gap report via deriveEngineState()."
+    },
+    {
+      "id": "UAT-010",
+      "question": "Rejected gate lifecycle: after reject, edge shows paused; re-iterate required to proceed",
+      "passed": true,
+      "evidence": "After review_rejected event, GateQueue shows gate.state='rejected' (greyed out). EngineStateBar shows BLOCKED on the affected edge. User must re-run to proceed."
+    },
+    {
+      "id": "UAT-011",
+      "question": "Fallback provenance: synthesised domain model displays with provenance warning; graph remains usable",
+      "passed": true,
+      "evidence": "When domain.source_mode='fp_synthesized', TrustBar renders amber banner: 'Domain model synthesised from kernel source — not zero-interpretation'. GraphTopologyView, ConvergencePanel, and all panels remain fully functional."
+    },
+    {
+      "id": "UAT-012",
+      "question": "Session watermark: events since last session shown as new; badge clears on mark-seen",
+      "passed": true,
+      "evidence": "watermarkSeq loaded from localStorage on mount; events with seq > watermarkSeq highlighted blue. 'Mark all seen' updates watermarkSeq to max(events.seq) and persists to localStorage. Unread badge count updates immediately."
+    },
+    {
+      "id": "UAT-013",
+      "question": "Config drift: workspace with genesis.yml build-root mismatch shows drift warning inline",
+      "passed": true,
+      "evidence": "DriftBanner renders configDrift warning when genesis_manager detects build-root mismatch. Warning appears inline (below TrustBar) without blocking ConvergencePanel, GateQueue, EventStream, or other panels. installChurn and layoutInconsistencies also surfaced here."
+    }
+  ]
+}

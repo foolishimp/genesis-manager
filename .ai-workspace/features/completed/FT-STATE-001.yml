@@ -1,0 +1,18 @@
+id: FT-STATE-001
+title: Convergence State and Gap Report
+status: completed
+satisfies:
+  - REQ-F-STATE-001
+  - REQ-F-STATE-002
+  - REQ-F-STATE-003
+  - REQ-F-STATE-004
+  - REQ-F-STATE-005
+description: |
+  Answers INTENT Q2 and Q3: "How far has it gotten?" and "What is blocked?"
+  Runs gen gaps and displays per-edge convergence: delta, failing evaluators,
+  passing evaluators. Shows overall project status (total_delta, converged bool).
+  Gap state refreshes automatically at a configurable interval; last-updated
+  timestamp always visible. F_D failures surfaced verbatim (returncode, stdout,
+  stderr) — not summarised.
+dependencies:
+  - FT-WS-001

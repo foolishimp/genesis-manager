@@ -1,0 +1,18 @@
+id: FT-FEAT-001
+title: Feature Vectors Display
+status: completed
+satisfies:
+  - REQ-F-FEAT-001
+  - REQ-F-FEAT-002
+  - REQ-F-FEAT-003
+  - REQ-F-FEAT-004
+  - REQ-F-FEAT-005
+description: |
+  Reads active and completed feature YAMLs from .ai-workspace/features/.
+  Displays per-feature: id, title, status, satisfies (REQ keys covered),
+  dependencies. Shows REQ key coverage: which Package.requirements are covered
+  vs uncovered. Feature detail view shows full YAML, linked events, and
+  evaluator results for that feature's edges.
+dependencies:
+  - FT-WS-001
+  - FT-EVT-001
