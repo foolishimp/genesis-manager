@@ -1,0 +1,28 @@
+# Node
+node_modules/
+dist/
+build/
+.vite/
+
+# Test output
+coverage/
+playwright-report/
+test-results/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+
+# Bootstrap compiler — installed, not committed
+.genesis/
+
+# Engine runtime artifacts
+.ai-workspace/fp_manifests/
+.ai-workspace/fp_results/
+
+# Local env
+.env
+.env.local
