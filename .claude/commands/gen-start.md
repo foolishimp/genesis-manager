@@ -59,12 +59,11 @@ write path per GENESIS_BOOTLOADER §V):
 
 ```
 result = read_json(manifest["result_path"])   # {edge, assessments: [{evaluator, result, evidence}]}
-spec_hash = manifest["spec_hash"]             # required by REQ-F-EVAL-004
 for assessment in result["assessments"]:
   if assessment["result"] == "pass":
     PYTHONPATH=.genesis python -m genesis emit-event \
       --type fp_assessment \
-      --data '{"edge": "{edge}", "evaluator": "{evaluator}", "result": "pass", "spec_hash": "{spec_hash}"}'
+      --data '{"edge": "{edge}", "evaluator": "{evaluator}", "result": "pass"}'
 ```
 
 Go to Step 1.
