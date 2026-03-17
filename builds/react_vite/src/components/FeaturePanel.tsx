@@ -14,11 +14,11 @@ function CoverageBar({ satisfies, totalReqs }: CoverageBarProps) {
   const pct = totalReqs > 0 ? Math.round((satisfies.length / totalReqs) * 100) : 0
   return (
     <div className="space-y-1">
-      <div className="flex justify-between text-xs text-gray-600">
+      <div className="flex justify-between text-xs text-gray-400">
         <span>{satisfies.length}/{totalReqs} REQ keys covered</span>
         <span>{pct}%</span>
       </div>
-      <div className="w-full bg-gray-200 rounded h-1.5">
+      <div className="w-full bg-gray-700 rounded h-1.5">
         <div
           className={`h-1.5 rounded ${pct === 100 ? 'bg-green-500' : 'bg-blue-500'}`}
           style={{ width: `${pct}%` }}
@@ -36,15 +36,15 @@ interface FeatureDetailProps {
 
 function FeatureDetail({ feature, onFocus, onClose }: FeatureDetailProps) {
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-10">
-      <div className="bg-white rounded shadow-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-10">
+      <div className="bg-gray-900 border border-gray-700 rounded shadow-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
         <div className="flex justify-between items-start mb-4">
-          <div className="font-mono font-medium">{feature.id}</div>
-          <button className="text-gray-400 hover:text-gray-700" onClick={onClose}>✕</button>
+          <div className="font-mono font-medium text-gray-100">{feature.id}</div>
+          <button className="text-gray-400 hover:text-gray-200" onClick={onClose}>✕</button>
         </div>
         <div className="space-y-3">
           <div>
-            <div className="text-xs font-medium text-gray-600 mb-1">Satisfies</div>
+            <div className="text-xs font-medium text-gray-400 mb-1">Satisfies</div>
             <div className="flex flex-wrap gap-1">
               {feature.satisfies.map((k) => (
                 <ReqKeyLink key={k} reqKey={k} onFocus={onFocus} />
@@ -53,17 +53,17 @@ function FeatureDetail({ feature, onFocus, onClose }: FeatureDetailProps) {
           </div>
           {feature.dependencies.length > 0 && (
             <div>
-              <div className="text-xs font-medium text-gray-600 mb-1">Dependencies</div>
+              <div className="text-xs font-medium text-gray-400 mb-1">Dependencies</div>
               <div className="flex flex-wrap gap-1">
                 {feature.dependencies.map((d) => (
-                  <span key={d} className="text-xs font-mono text-gray-600">{d}</span>
+                  <span key={d} className="text-xs font-mono text-gray-400">{d}</span>
                 ))}
               </div>
             </div>
           )}
           <div>
-            <div className="text-xs font-medium text-gray-600 mb-1">YAML</div>
-            <pre className="text-xs bg-gray-50 p-3 rounded overflow-x-auto">{feature.yaml_text}</pre>
+            <div className="text-xs font-medium text-gray-400 mb-1">YAML</div>
+            <pre className="text-xs bg-gray-950 text-gray-300 p-3 rounded overflow-x-auto">{feature.yaml_text}</pre>
           </div>
         </div>
       </div>
@@ -83,7 +83,7 @@ export function FeaturePanel({ features, onFocus }: FeaturePanelProps) {
 
   return (
     <div className="p-4 space-y-4">
-      <div className="text-sm font-medium text-gray-700">
+      <div className="text-sm font-medium text-gray-300">
         Features ({features.length})
       </div>
 
@@ -94,7 +94,7 @@ export function FeaturePanel({ features, onFocus }: FeaturePanelProps) {
         {features.map((f) => (
           <div
             key={f.id}
-            className="border rounded p-3 cursor-pointer hover:bg-gray-50 space-y-1"
+            className="border border-gray-800 rounded p-3 cursor-pointer hover:bg-gray-900 space-y-1"
             onClick={() => setSelected(f)}
           >
             <div className="flex items-center justify-between">
@@ -102,8 +102,8 @@ export function FeaturePanel({ features, onFocus }: FeaturePanelProps) {
               <span
                 className={`text-xs px-1.5 py-0.5 rounded ${
                   f.status === 'completed'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-blue-100 text-blue-700'
+                    ? 'bg-green-900/40 text-green-300'
+                    : 'bg-blue-900/40 text-blue-300'
                 }`}
               >
                 {f.status}
@@ -114,7 +114,7 @@ export function FeaturePanel({ features, onFocus }: FeaturePanelProps) {
                 <span key={k} className="text-xs font-mono text-gray-500">{k}</span>
               ))}
               {f.satisfies.length > 5 && (
-                <span className="text-xs text-gray-400">+{f.satisfies.length - 5} more</span>
+                <span className="text-xs text-gray-500">+{f.satisfies.length - 5} more</span>
               )}
             </div>
           </div>
@@ -141,7 +141,7 @@ function FeatureLink({
 }) {
   return (
     <button
-      className="text-blue-600 hover:underline bg-transparent border-0 p-0 cursor-pointer font-mono text-sm"
+      className="text-blue-400 hover:text-blue-300 hover:underline bg-transparent border-0 p-0 cursor-pointer font-mono text-sm"
       onClick={(e) => {
         e.stopPropagation()
         onFocus({ type: 'feature', id: featureId })

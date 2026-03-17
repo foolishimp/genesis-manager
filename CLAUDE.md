@@ -565,27 +565,28 @@ No feature vector. No iterate() cycle. No human gate. No REQ key traceability. O
 
 ---
 
-## XXI. Abiogenesis Project — Local Write Territory Amendment
+## XXI. genesis-manager Project — Local Write Territory Amendment
 
-*This section amends §XIX for the abiogenesis project structure. It does not modify the general invariants — it instantiates them for this build.*
+*This section amends §XIX for the genesis-manager project structure. It does not modify the general invariants — it instantiates them for this build.*
 
-**Build territory** (abiogenesis-specific, V1 single-tenant):
+**Build territory** (genesis-manager, V1 single-tenant):
 
 | Territory | Who writes | Rule |
 |-----------|-----------|------|
-| `builds/claude_code/code/` | Claude Code | Genesis engine implementation |
-| `builds/claude_code/tests/` | Claude Code | Engine tests |
-| `builds/claude_code/design/adrs/` | Claude Code | Architectural decisions |
-| `builds/claude_code/.workspace/` | Claude Code | Build-local trace surface (not committed) |
+| `builds/react_vite/src/` | Claude Code | React/Vite application source |
+| `builds/react_vite/server/` | Claude Code | Express API server source |
+| `builds/react_vite/tests/` | Claude Code | Unit and integration tests |
+| `builds/react_vite/e2e/` | Claude Code | End-to-end tests |
+| `builds/react_vite/design/adrs/` | Claude Code | Architectural decisions |
 | `.ai-workspace/events/events.jsonl` | All agents via `emit()` only | Never write directly |
 | `.ai-workspace/comments/claude/` | Claude Code only | Design marketplace posts |
 | `.ai-workspace/features/` | Claude Code | Feature vectors |
 | `.ai-workspace/reviews/` | All agents | Proposals; human gate resolves |
 
-**Spec is read-only**: `gtl_spec/` is the constitutional source of truth. `genesis_core.py` IS the spec. Claude Code reads `gtl_spec/` but never writes to it — writes go to `builds/claude_code/` only.
+**Spec is read-only**: `gtl_spec/` is the constitutional source of truth. `gtl_spec/packages/genesis_manager.py` IS the spec. Claude Code reads `gtl_spec/` but never writes to it — writes go to `builds/react_vite/` only.
 
-**V1 single-tenant constraint**: Only the `claude_code` build exists in V1. Do not create `comments/codex/`, `comments/gemini/`, or `comments/bedrock/` directories — they are V2+ concerns. See `V1_DOCTRINE.md` for the complete non-goals list.
+**V1 single-tenant constraint**: Only the `react_vite` build exists in V1. Do not create `comments/codex/`, `comments/gemini/`, or `comments/bedrock/` directories — they are V2+ concerns.
 
-**Bootstrap compiler**: The `.genesis/` directory contains the installed bootstrap compiler (ai_sdlc_method genesis engine v3.1.0). It is not committed — it is installed. Do not modify files under `.genesis/`.
+**Bootstrap compiler**: The `.genesis/` directory contains the installed bootstrap compiler (genesis_sdlc). It is not committed — it is installed. Do not modify files under `.genesis/`.
 
 <!-- GENESIS_BOOTLOADER_END -->

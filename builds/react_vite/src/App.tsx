@@ -1,76 +1,35 @@
-// Implements: REQ-F-WS-001, REQ-F-WS-002, REQ-F-UX-001, REQ-F-UX-002
+// Implements: REQ-F-WS-001, REQ-F-WS-002, REQ-F-UX-001, REQ-F-NAV-001
 
-import { useState } from 'react'
-import type { WorkspacePath, DomainModel } from './types'
-import { getDomain } from './api/client'
-import { WorkspaceSelector } from './components/WorkspaceSelector'
-import { ProjectDashboard } from './components/ProjectDashboard'
+import { useEffect } from 'react'
+import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom'
+import { useProjectStore } from './stores/projectStore'
+import { ProjectListPage } from './features/project-nav/ProjectListPage'
+import { WorkspaceRoute } from './components/WorkspaceRoute'
 
-const DEFAULT_REFRESH_MS = 10_000
+// RootLayout — sets up global 30-second polling of workspace summaries
+function RootLayout() {
+  const refreshAll = useProjectStore((s) => s.refreshAll)
 
-interface LoadedWorkspace {
-  path: WorkspacePath
-  domain: DomainModel
+  useEffect(() => {
+    void refreshAll()
+    const id = setInterval(() => void refreshAll(), 30_000)
+    return () => clearInterval(id)
+  }, [refreshAll])
+
+  return <Outlet />
 }
 
-// Minimal stub domain for when backend is unavailable
-function stubDomain(name: string): DomainModel {
-  return {
-    kernel_version: 'unknown',
-    source_mode: 'fp_synthesized',
-    package: { name, assets: [], edges: [], requirements: [] },
-  }
-}
+const router = createBrowserRouter([
+  {
+    element: <RootLayout />,
+    children: [
+      { path: '/', element: <ProjectListPage /> },
+      { path: '/project/:workspaceId', element: <WorkspaceRoute /> },
+      { path: '*', element: <Navigate to="/" replace /> },
+    ],
+  },
+])
 
 export default function App() {
-  const [loaded, setLoaded] = useState<LoadedWorkspace | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-
-  async function handleSelectWorkspace(ws: WorkspacePath) {
-    setLoading(true)
-    setError('')
-    try {
-      const domain = await getDomain(ws.path)
-      setLoaded({ path: ws, domain })
-    } catch {
-      // Fallback: open with stub domain — REQ-F-WS-002 (both sourcing paths)
-      setLoaded({ path: ws, domain: stubDomain(ws.name) })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
-        Loading workspace…
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-red-600">{error}</div>
-      </div>
-    )
-  }
-
-  if (!loaded) {
-    return (
-      <WorkspaceSelector
-        onSelect={handleSelectWorkspace}
-        recent={[]}
-      />
-    )
-  }
-
-  return (
-    <ProjectDashboard
-      workspacePath={loaded.path.path}
-      domain={loaded.domain}
-      refreshIntervalMs={DEFAULT_REFRESH_MS}
-    />
-  )
+  return <RouterProvider router={router} />
 }

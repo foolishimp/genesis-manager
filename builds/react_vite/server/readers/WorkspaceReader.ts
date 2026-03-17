@@ -1,8 +1,10 @@
-// Implements: REQ-F-WS-001, REQ-F-WS-002, REQ-F-STATE-001, REQ-F-FEAT-001
+// Implements: REQ-F-WS-001, REQ-F-WS-002, REQ-F-WS-003, REQ-F-WS-004, REQ-F-WS-005
+// Implements: REQ-F-STATE-001, REQ-F-FEAT-001
 
 import { readFileSync, readdirSync, existsSync } from 'fs'
-import { join, basename } from 'path'
+import { join, basename, dirname } from 'path'
 import { execSync } from 'child_process'
+import { homedir } from 'os'
 
 export interface WorkspaceInfo {
   id: string
@@ -45,35 +47,41 @@ export interface DomainModel {
   }
 }
 
-// REQ-F-WS-001: try gen describe (F_D path); fall back to reading spec (F_P path)
+// REQ-F-WS-001: synthesise domain model from genesis.yml + gaps output
+// gen describe does not exist in this engine version — synthesise directly
 export function getDomain(workspacePath: string): DomainModel {
-  try {
-    const out = execSync(
-      `PYTHONPATH=.genesis python -m genesis describe --workspace "${workspacePath}"`,
-      { cwd: workspacePath, timeout: 10_000 },
-    )
-    return JSON.parse(out.toString()) as DomainModel
-  } catch {
-    // F_P path: read genesis.yml for minimal info
-    return synthesiseFallback(workspacePath)
-  }
-}
-
-function synthesiseFallback(workspacePath: string): DomainModel {
-  const name = basename(workspacePath)
-  // Try to read kernel version from genesis.yml
   let kernelVersion = 'unknown'
+  let packageName = basename(workspacePath)
+
   try {
     const yml = readFileSync(join(workspacePath, '.genesis', 'genesis.yml'), 'utf8')
-    const match = /version:\s*(.+)/.exec(yml)
-    if (match?.[1]) kernelVersion = match[1].trim()
-  } catch {
-    // ignore
-  }
+    const verMatch = /version:\s*(.+)/.exec(yml)
+    if (verMatch?.[1]) kernelVersion = verMatch[1].trim()
+    // Extract package name: "package: gtl_spec.packages.FOO:package" → "FOO"
+    const pkgMatch = /package:\s+[\w.]+\.(\w+):\w+/.exec(yml)
+    if (pkgMatch?.[1]) packageName = pkgMatch[1]
+  } catch { /* ignore */ }
+
+  // Use gaps to get edge topology
+  let edges: DomainModel['package']['edges'] = []
+  try {
+    const raw = execSync(
+      `PYTHONPATH=.genesis python -m genesis gaps --workspace "${workspacePath}"`,
+      { cwd: workspacePath, timeout: 30_000 },
+    )
+    const parsed = JSON.parse(raw.toString()) as { gaps?: Array<{ edge: string; failing: string[] }> }
+    if (parsed.gaps) {
+      edges = parsed.gaps.map((g) => {
+        const parts = g.edge.split('→')
+        return { source: parts[0] ?? g.edge, target: parts[1] ?? g.edge, evaluators: g.failing }
+      })
+    }
+  } catch { /* leave edges empty */ }
+
   return {
     kernel_version: kernelVersion,
     source_mode: 'fp_synthesized',
-    package: { name, assets: [], edges: [], requirements: [] },
+    package: { name: packageName, assets: [], edges, requirements: [] },
   }
 }
 
@@ -84,12 +92,22 @@ export interface GapReport {
 }
 
 // REQ-F-STATE-001
+// Engine emits "gaps" array — normalise to "per_edge" for the client
 export function getGaps(workspacePath: string): GapReport {
   const out = execSync(
     `PYTHONPATH=.genesis python -m genesis gaps --workspace "${workspacePath}"`,
     { cwd: workspacePath, timeout: 30_000 },
   )
-  return JSON.parse(out.toString()) as GapReport
+  const raw = JSON.parse(out.toString()) as {
+    total_delta: number
+    gaps?: Array<{ edge: string; delta: number; failing: string[]; passing: string[] }>
+    per_edge?: Array<{ edge: string; delta: number; failing: string[]; passing: string[] }>
+  }
+  return {
+    total_delta: raw.total_delta,
+    per_edge: raw.gaps ?? raw.per_edge ?? [],
+    timestamp: new Date().toISOString(),
+  }
 }
 
 export interface FeatureVector {
@@ -98,6 +116,91 @@ export interface FeatureVector {
   satisfies: string[]
   dependencies: string[]
   yaml_text: string
+}
+
+// ── Workspace summary (for project list) ──────────────────────────────────────
+// REQ-F-WS-003: compute WorkspaceSummary from filesystem — no subprocess
+
+export interface WorkspaceSummary {
+  workspaceId: string
+  projectName: string
+  activeFeatureCount: number
+  pendingGateCount: number
+  stuckFeatureCount: number
+  hasAttentionRequired: boolean
+  available: boolean
+  lastEventTimestamp: string | null
+}
+
+export function getWorkspaceSummary(workspacePath: string): WorkspaceSummary {
+  const projectName = basename(workspacePath)
+  const wsDir = join(workspacePath, '.ai-workspace')
+  const eventsPath = join(wsDir, 'events', 'events.jsonl')
+  const available = existsSync(wsDir) && existsSync(eventsPath)
+
+  if (!available) {
+    return { workspaceId: workspacePath, projectName, activeFeatureCount: 0, pendingGateCount: 0, stuckFeatureCount: 0, hasAttentionRequired: false, available: false, lastEventTimestamp: null }
+  }
+
+  // Count active features
+  let activeFeatureCount = 0
+  try {
+    activeFeatureCount = readdirSync(join(wsDir, 'features', 'active')).filter((f) => f.endsWith('.yml')).length
+  } catch { /* dir may not exist */ }
+
+  // Scan events for pending gate count + last event timestamp
+  let pendingGateCount = 0
+  let lastEventTimestamp: string | null = null
+  try {
+    const lines = readFileSync(eventsPath, 'utf8').trim().split('\n').filter(Boolean)
+    const gateResolved = new Map<string, boolean>()
+    for (const line of lines) {
+      try {
+        const evt = JSON.parse(line) as { event_type: string; event_time: string; data?: { edge?: string; feature?: string } }
+        lastEventTimestamp = evt.event_time
+        const key = `${evt.data?.edge ?? ''}|${evt.data?.feature ?? ''}`
+        if (evt.event_type === 'fh_gate_pending') {
+          gateResolved.set(key, false)
+        } else if (evt.event_type === 'review_approved' || evt.event_type === 'review_rejected') {
+          gateResolved.set(key, true)
+        }
+      } catch { /* skip malformed lines */ }
+    }
+    pendingGateCount = [...gateResolved.values()].filter((v) => !v).length
+  } catch { /* skip if events unreadable */ }
+
+  return { workspaceId: workspacePath, projectName, activeFeatureCount, pendingGateCount, stuckFeatureCount: 0, hasAttentionRequired: pendingGateCount > 0, available: true, lastEventTimestamp }
+}
+
+// ── Filesystem browser ────────────────────────────────────────────────────────
+// REQ-F-WS-005
+
+export interface FsEntry {
+  name: string
+  absolutePath: string
+  hasWorkspace: boolean
+}
+
+export interface FsBrowseResult {
+  path: string
+  parent: string | null
+  entries: FsEntry[]
+  truncated: boolean
+}
+
+export function browseDirectory(targetPath?: string): FsBrowseResult {
+  const dir = targetPath ?? homedir()
+  const MAX_ENTRIES = 500
+  const raw = readdirSync(dir, { withFileTypes: true })
+  const dirs = raw.filter((e) => e.isDirectory() && !e.name.startsWith('.') && e.name !== 'node_modules')
+  const truncated = dirs.length > MAX_ENTRIES
+  const entries: FsEntry[] = dirs.slice(0, MAX_ENTRIES).map((e) => {
+    const absPath = join(dir, e.name)
+    const hasWorkspace = existsSync(join(absPath, '.ai-workspace', 'events', 'events.jsonl'))
+    return { name: e.name, absolutePath: absPath, hasWorkspace }
+  })
+  const parent = dir === '/' ? null : dirname(dir)
+  return { path: dir, parent, entries, truncated }
 }
 
 // REQ-F-FEAT-001

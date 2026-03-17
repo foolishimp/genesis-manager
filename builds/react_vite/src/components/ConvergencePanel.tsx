@@ -20,7 +20,7 @@ function EvaluatorResult({ name, edge, passing, onFocus }: EvaluatorResultProps)
   return (
     <span
       className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded ${
-        passing ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+        passing ? 'bg-green-900/40 text-green-300' : 'bg-red-900/40 text-red-300'
       }`}
     >
       <EvaluatorLink name={name} edge={edge} onFocus={onFocus} />
@@ -61,7 +61,7 @@ export function ConvergencePanel({ gapReport, onFocus }: ConvergencePanelProps) 
       <div className="flex items-center gap-3">
         <span
           className={`text-sm font-medium px-2 py-1 rounded ${
-            allConverged ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+            allConverged ? 'bg-green-900/40 text-green-300' : 'bg-amber-900/40 text-amber-300'
           }`}
         >
           {allConverged ? 'CONVERGED' : `Δ ${gapReport.total_delta}`}
@@ -71,11 +71,11 @@ export function ConvergencePanel({ gapReport, onFocus }: ConvergencePanelProps) 
 
       <div className="space-y-2">
         {gapReport.per_edge.map((eg) => (
-          <div key={eg.edge} className="border rounded p-2 text-sm">
+          <div key={eg.edge} className="border border-gray-800 rounded p-2 text-sm">
             <div className="flex items-center gap-2 mb-1">
               <EdgeLink edgeName={eg.edge} onFocus={onFocus} />
               <span
-                className={`text-xs font-mono ${eg.delta === 0 ? 'text-green-600' : 'text-red-600'}`}
+                className={`text-xs font-mono ${eg.delta === 0 ? 'text-green-400' : 'text-red-400'}`}
               >
                 Δ{eg.delta}
               </span>

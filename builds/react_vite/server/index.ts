@@ -28,11 +28,13 @@ app.use(express.json())
 // ── API routes ────────────────────────────────────────────────────────────────
 
 // Workspace discovery + domain + gaps + events + features + fp-results
-// Routes: /api/workspaces, /api/workspace/:id/*
+// Routes: /api/workspaces/*, /api/workspace/ENCODED/*, /api/fs/browse
 app.use('/api/workspaces', workspacesRouter)
-app.use('/api/workspace/:id', workspacesRouter)
+app.use('/api/fs', workspacesRouter)
+app.use('/api/workspace', workspacesRouter)   // router owns /:id/domain, /:id/gaps, etc.
 
 // Control surface (start engine, emit events, SSE)
+// mergeParams:true on controlRouter inherits :id from this mount path
 app.use('/api/workspace/:id/control', controlRouter)
 
 // ── Static SPA serving (production) ──────────────────────────────────────────

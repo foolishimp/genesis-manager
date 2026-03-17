@@ -33,7 +33,7 @@ export function GraphTopologyView({ domain, gapsByEdge, onFocus }: GraphTopology
   const svgHeight = PAD_Y * 2 + NODE_H + MARGIN
 
   return (
-    <div className="border rounded bg-white overflow-auto">
+    <div className="border rounded bg-gray-900 overflow-auto">
       <svg width={svgWidth} height={svgHeight}>
         {/* Edges */}
         {edges.map((e) => {

@@ -13,16 +13,16 @@ export function TrustBar({
   staleAssessmentCount,
 }: TrustBarProps) {
   return (
-    <div className="flex items-center gap-4 px-4 py-2 bg-gray-100 border-b text-sm">
+    <div className="flex items-center gap-4 px-4 py-2 bg-gray-900 border-b border-gray-800 text-sm">
       {sourceMode === 'fp_synthesized' && (
-        <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded font-medium">
+        <span className="px-2 py-1 bg-amber-900/40 text-amber-300 rounded font-medium">
           Domain model synthesised from kernel source — not zero-interpretation
         </span>
       )}
-      <span className="text-gray-600">gaps: {fmt(lastGapsTime)}</span>
-      <span className="text-gray-600">event: {fmt(lastEventTime)}</span>
+      <span className="text-gray-400">gaps: {fmt(lastGapsTime)}</span>
+      <span className="text-gray-400">event: {fmt(lastEventTime)}</span>
       {staleAssessmentCount > 0 && (
-        <span className="px-2 py-1 bg-red-100 text-red-700 rounded">
+        <span className="px-2 py-1 bg-red-900/40 text-red-300 rounded">
           {staleAssessmentCount} stale
         </span>
       )}

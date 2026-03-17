@@ -208,7 +208,7 @@ export function ProjectDashboard({ workspacePath, domain, refreshIntervalMs }: P
   ]
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-screen bg-gray-950">
       {/* Trust bar — REQ-F-TRUST-001 */}
       <TrustBar
         lastGapsTime={lastGapsTime}
@@ -229,21 +229,21 @@ export function ProjectDashboard({ workspacePath, domain, refreshIntervalMs }: P
 
       {/* Ready to ship indicator — REQ-F-DRIFT-004 */}
       {isReadyToShip && (
-        <div className="px-4 py-2 bg-green-600 text-white text-sm font-medium text-center">
+        <div className="px-4 py-2 bg-green-900/40 text-green-300 text-sm font-medium text-center border-b border-green-900/60">
           ✓ Ready to Ship
         </div>
       )}
 
       {/* Nav header */}
-      <div className="flex items-center gap-1 px-4 py-2 bg-white border-b">
-        <span className="text-sm font-mono text-gray-700 mr-4 truncate max-w-xs">{workspacePath}</span>
+      <div className="flex items-center gap-1 px-4 py-2 bg-gray-900 border-b border-gray-800">
+        <span className="text-sm font-mono text-gray-500 mr-4 truncate max-w-xs">{workspacePath}</span>
         {panels.map((p) => (
           <button
             key={p.id}
             className={`px-3 py-1.5 text-sm rounded relative ${
               activePanel === p.id
                 ? 'bg-blue-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
+                : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
             }`}
             onClick={() => setActivePanel(p.id)}
           >
@@ -306,11 +306,11 @@ export function ProjectDashboard({ workspacePath, domain, refreshIntervalMs }: P
       {/* Entity detail overlay — REQ-F-NAV-001 */}
       {focusedEntity && (
         <div
-          className="fixed bottom-4 right-4 bg-white border rounded shadow-lg p-4 max-w-sm z-20"
+          className="fixed bottom-4 right-4 bg-gray-900 border border-gray-700 rounded shadow-lg p-4 max-w-sm z-20"
         >
           <div className="flex justify-between items-start mb-2">
-            <div className="text-xs font-medium text-gray-600">{focusedEntity.type}</div>
-            <button className="text-gray-400 hover:text-gray-700" onClick={() => setFocusedEntity(null)}>✕</button>
+            <div className="text-xs font-medium text-gray-400">{focusedEntity.type}</div>
+            <button className="text-gray-400 hover:text-gray-200" onClick={() => setFocusedEntity(null)}>✕</button>
           </div>
           <div className="font-mono text-sm">
             {'key' in focusedEntity && focusedEntity.key}

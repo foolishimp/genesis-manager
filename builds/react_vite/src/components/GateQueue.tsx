@@ -10,27 +10,27 @@ function GateCard({ gate, onApprove, onReject }: GateCardProps) {
 
   if (gate.state !== 'pending') {
     return (
-      <div className="border rounded p-3 opacity-50 text-sm">
+      <div className="border border-gray-800 rounded p-3 opacity-50 text-sm">
         <span className="font-mono">{gate.edge}</span>
-        <span className="ml-2 text-xs">[{gate.state}]</span>
+        <span className="ml-2 text-xs text-gray-500">[{gate.state}]</span>
       </div>
     )
   }
 
   return (
-    <div className="border rounded p-4 bg-white shadow-sm space-y-3">
+    <div className="border border-gray-700 rounded p-4 bg-gray-900 shadow-sm space-y-3">
       <div className="flex items-start justify-between">
         <div>
-          <div className="font-mono text-sm font-medium">{gate.edge}</div>
+          <div className="font-mono text-sm font-medium text-gray-100">{gate.edge}</div>
           {gate.feature && <div className="text-xs text-gray-500">{gate.feature}</div>}
-          <div className="text-xs text-gray-400">{gate.eventTime}</div>
+          <div className="text-xs text-gray-500">{gate.eventTime}</div>
         </div>
-        <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded">PENDING</span>
+        <span className="px-2 py-1 bg-amber-900/40 text-amber-300 text-xs rounded">PENDING</span>
       </div>
 
       <div className="space-y-1">
-        <div className="text-xs font-medium text-gray-600">Criteria:</div>
-        <ul className="list-disc list-inside text-sm space-y-1">
+        <div className="text-xs font-medium text-gray-400">Criteria:</div>
+        <ul className="list-disc list-inside text-sm space-y-1 text-gray-300">
           {gate.criteria.map((c) => (
             <li key={c}>{c}</li>
           ))}
@@ -40,13 +40,13 @@ function GateCard({ gate, onApprove, onReject }: GateCardProps) {
       {!showReject ? (
         <div className="flex gap-2">
           <button
-            className="px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+            className="px-3 py-1.5 bg-green-700 text-white text-sm rounded hover:bg-green-600"
             onClick={() => onApprove()}
           >
             Approve
           </button>
           <button
-            className="px-3 py-1.5 bg-red-100 text-red-700 text-sm rounded hover:bg-red-200"
+            className="px-3 py-1.5 bg-red-900/40 text-red-300 text-sm rounded border border-red-900/60 hover:bg-red-900/60"
             onClick={() => setShowReject(true)}
           >
             Reject
@@ -55,7 +55,7 @@ function GateCard({ gate, onApprove, onReject }: GateCardProps) {
       ) : (
         <div className="space-y-2">
           <textarea
-            className="w-full border rounded p-2 text-sm"
+            className="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded p-2 text-sm placeholder-gray-500"
             placeholder="Rejection reason (required)"
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
@@ -63,14 +63,14 @@ function GateCard({ gate, onApprove, onReject }: GateCardProps) {
           />
           <div className="flex gap-2">
             <button
-              className="px-3 py-1.5 bg-red-600 text-white text-sm rounded hover:bg-red-700 disabled:opacity-50"
+              className="px-3 py-1.5 bg-red-700 text-white text-sm rounded hover:bg-red-600 disabled:opacity-50"
               disabled={!rejectReason.trim()}
               onClick={() => onReject(rejectReason)}
             >
               Confirm Reject
             </button>
             <button
-              className="px-3 py-1.5 text-gray-600 text-sm rounded hover:bg-gray-100"
+              className="px-3 py-1.5 text-gray-400 text-sm rounded hover:bg-gray-800 hover:text-gray-200"
               onClick={() => setShowReject(false)}
             >
               Cancel
@@ -94,7 +94,7 @@ export function GateQueue({ gates, workspaceId: _workspaceId, onFocus: _onFocus,
 
   return (
     <div className="p-4 space-y-3">
-      <div className="text-sm font-medium text-gray-700">
+      <div className="text-sm font-medium text-gray-300">
         Gate Queue ({pending.length} pending)
       </div>
       {gates.length === 0 ? (

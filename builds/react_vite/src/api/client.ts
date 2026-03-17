@@ -3,6 +3,8 @@
 
 import type {
   WorkspaceInfo,
+  WorkspaceSummary,
+  FsBrowseResult,
   DomainModel,
   GapReport,
   EventsResponse,
@@ -36,6 +38,21 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 export function listWorkspaces(root?: string): Promise<WorkspaceInfo[]> {
   const q = root ? `?root=${encodeURIComponent(root)}` : ''
   return get(`/workspaces${q}`)
+}
+
+// ── Workspace registration + summaries ────────────────────────────────────────
+// REQ-F-WS-003, REQ-F-WS-004
+
+export function getWorkspaceSummaries(paths: string[]): Promise<WorkspaceSummary[]> {
+  return post('/workspaces/summaries', { paths })
+}
+
+// ── Filesystem browser ────────────────────────────────────────────────────────
+// REQ-F-WS-005
+
+export function browsePath(path?: string): Promise<FsBrowseResult> {
+  const q = path ? `?path=${encodeURIComponent(path)}` : ''
+  return get(`/fs/browse${q}`)
 }
 
 // ── Domain model ──────────────────────────────────────────────────────────────

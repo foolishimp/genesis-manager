@@ -193,6 +193,36 @@ export interface DriftBannerProps {
   layoutInconsistencies: string[]
 }
 
+// ── Workspace registration + summary ─────────────────────────────────────────
+// REQ-F-WS-003, REQ-F-WS-004
+
+export interface WorkspaceSummary {
+  workspaceId: string
+  projectName: string
+  activeFeatureCount: number
+  pendingGateCount: number
+  stuckFeatureCount: number
+  hasAttentionRequired: boolean
+  available: boolean
+  lastEventTimestamp: string | null
+}
+
+// ── Filesystem browser ────────────────────────────────────────────────────────
+// REQ-F-WS-005
+
+export interface FsEntry {
+  name: string
+  absolutePath: string
+  hasWorkspace: boolean
+}
+
+export interface FsBrowseResult {
+  path: string
+  parent: string | null
+  entries: FsEntry[]
+  truncated: boolean
+}
+
 // ── API response types ────────────────────────────────────────────────────────
 
 export interface WorkspaceInfo {

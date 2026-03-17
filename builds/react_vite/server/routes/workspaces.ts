@@ -1,7 +1,7 @@
-// Implements: REQ-F-WS-001, REQ-F-WS-003, REQ-F-WS-004, REQ-F-WS-009, REQ-F-WS-010
+// Implements: REQ-F-WS-001, REQ-F-WS-003, REQ-F-WS-004, REQ-F-WS-005, REQ-F-WS-009, REQ-F-WS-010
 
 import { Router } from 'express'
-import { scanWorkspaces, getDomain, getGaps, getFeatures } from '../readers/WorkspaceReader'
+import { scanWorkspaces, getDomain, getGaps, getFeatures, getWorkspaceSummary, browseDirectory } from '../readers/WorkspaceReader'
 import { readEvents, readFpResults } from '../readers/EventLogReader'
 import { homedir } from 'os'
 
@@ -14,6 +14,30 @@ workspacesRouter.get('/', (req, res) => {
   try {
     const ws = scanWorkspaces(root)
     res.json(ws)
+  } catch (err) {
+    res.status(500).json({ error: String(err) })
+  }
+})
+
+// POST /api/workspaces/summaries
+// REQ-F-WS-004: batch workspace summaries for registered paths
+workspacesRouter.post('/summaries', (req, res) => {
+  const { paths } = req.body as { paths: string[] }
+  if (!Array.isArray(paths)) {
+    res.status(400).json({ error: 'paths must be an array' })
+    return
+  }
+  const summaries = paths.map(getWorkspaceSummary)
+  res.json(summaries)
+})
+
+// GET /api/fs/browse?path={dir}
+// REQ-F-WS-005: filesystem browser for workspace discovery
+workspacesRouter.get('/browse', (req, res) => {
+  const targetPath = req.query.path as string | undefined
+  try {
+    const result = browseDirectory(targetPath)
+    res.json(result)
   } catch (err) {
     res.status(500).json({ error: String(err) })
   }
