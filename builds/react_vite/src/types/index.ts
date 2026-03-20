@@ -27,6 +27,8 @@ export interface DomainEdge {
 export interface DomainModel {
   kernel_version: string
   source_mode: 'fd_describe' | 'fp_synthesized'
+  spec_hash: string
+  config_drift: ConfigDrift | null
   package: {
     name: string
     assets: DomainAsset[]
@@ -91,6 +93,15 @@ export interface PendingGate {
   criteria: string[]
   eventTime: string
   state: GateState
+}
+
+// REQ-F-GATE-005: proxy decisions surfaced for human review
+export interface ProxyDecision {
+  edge: string
+  feature: string | null
+  decision: 'approved' | 'rejected'
+  eventTime: string
+  proxyLog: string | null
 }
 
 // ── Engine state ──────────────────────────────────────────────────────────────

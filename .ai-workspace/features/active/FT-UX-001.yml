@@ -1,0 +1,29 @@
+id: FT-UX-001
+title: UX Liveness, Error Handling, and Performance
+status: iterating
+satisfies:
+  - REQ-F-UX-001
+  - REQ-F-UX-002
+  - REQ-F-UX-003
+  - REQ-F-UX-004
+  - REQ-F-UX-005
+  - REQ-F-ERR-001
+  - REQ-F-ERR-002
+  - REQ-F-ERR-003
+  - REQ-F-ERR-004
+  - REQ-NFR-001
+  - REQ-NFR-002
+description: |
+  Cross-cutting liveness and quality requirements. Gap state and events refresh
+  automatically at configurable interval; last-updated time always visible.
+  User never types genesis CLI syntax. Pending human gates surface prominently.
+  Live process output streams to UI; retained until next invocation. Three engine
+  states (RUNNING / NEXT / BLOCKED) visually distinct at all times.
+  Error states: engine unavailable, workspace degraded, gap failure, large event
+  streams — each surfaced inline without crashing. Large event streams paginated;
+  event count always visible.
+  Performance: 50k-event files render in < 3s; first project state visible
+  within 3s on localhost.
+dependencies:
+  - FT-WS-001
+  - FT-STATE-001

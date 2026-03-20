@@ -1,0 +1,26 @@
+id: FT-CTL-001
+title: Control Surface and Next-Action Preview
+status: iterating
+satisfies:
+  - REQ-F-CTL-001
+  - REQ-F-CTL-002
+  - REQ-F-CTL-003
+  - REQ-F-CTL-004
+  - REQ-F-CTL-005
+  - REQ-F-CTL-006
+  - REQ-F-CTL-007
+description: |
+  Answers INTENT Q4: "What does the engine want to do next?"
+  Trigger gen-start with flag selection (--auto, --auto --human-proxy, --edge E,
+  --feature F) exposed as UI controls. Trigger gen-iterate on a specific edge.
+  Shows in-flight F_P dispatches (fp_dispatched without matching fp_assessment).
+  F_P result viewer shows manifest prompt, evaluator results, evidence text.
+  Process status shows running/idle; prevents concurrent invocations; live output
+  streams to UI while running.
+  Read-only next-action: resolves next job/edge from current gap state without
+  appending events. Surface shows edge name, whether human input or F_P dispatch
+  is required, and which F_D evaluators are blocking. Three engine states visually
+  distinct: RUNNING, NEXT: {edge}, BLOCKED.
+dependencies:
+  - FT-WS-001
+  - FT-STATE-001

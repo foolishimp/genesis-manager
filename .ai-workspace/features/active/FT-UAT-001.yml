@@ -1,0 +1,47 @@
+id: FT-UAT-001
+title: UAT Playwright Test Suite — 13 Acceptance Scenarios
+status: iterating
+satisfies:
+  - REQ-F-UAT-001
+  - REQ-F-UAT-002
+  - REQ-F-UAT-003
+  - REQ-F-UAT-004
+  - REQ-F-UAT-005
+  - REQ-F-UAT-006
+  - REQ-F-UAT-007
+  - REQ-F-UAT-008
+  - REQ-F-UAT-009
+  - REQ-F-UAT-010
+  - REQ-F-UAT-011
+  - REQ-F-UAT-012
+  - REQ-F-UAT-013
+description: |
+  Playwright e2e test suite covering all 13 UAT scenarios.
+  UAT-001–008 anchor to the 8 INTENT questions:
+    Q1 GTL spec displays on project load
+    Q2 per-edge convergence state visible
+    Q3 blocked edge shows verbatim F_D output
+    Q4 in-flight F_P dispatch visible without starting a run
+    Q5 pending gate surfaces prominently with approve/reject
+    Q6 event history shows F_D results and fp_assessment evidence
+    Q7 new-since-last-session events highlighted
+    Q8 converged project shows CONVERGED satisfying DRIFT-004
+  UAT-009–013 from Codex review:
+    next-action preview without pressing Start
+    rejected gate shows paused state
+    synthesised domain model shows provenance warning
+    session watermark clears on mark-seen, resets on new events
+    config drift warning shown inline without blocking other views
+dependencies:
+  - FT-WS-001
+  - FT-WS-002
+  - FT-SPEC-001
+  - FT-STATE-001
+  - FT-EVT-001
+  - FT-FEAT-001
+  - FT-GATE-001
+  - FT-CTL-001
+  - FT-TRUST-001
+  - FT-DRIFT-001
+  - FT-NAV-001
+  - FT-UX-001

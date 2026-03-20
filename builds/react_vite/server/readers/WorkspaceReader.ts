@@ -1,10 +1,11 @@
 // Implements: REQ-F-WS-001, REQ-F-WS-002, REQ-F-WS-003, REQ-F-WS-004, REQ-F-WS-005
-// Implements: REQ-F-STATE-001, REQ-F-FEAT-001
+// Implements: REQ-F-STATE-001, REQ-F-FEAT-001, REQ-F-SPEC-002, REQ-F-DRIFT-001, REQ-F-TRUST-003
 
 import { readFileSync, readdirSync, existsSync } from 'fs'
 import { join, basename, dirname } from 'path'
 import { execSync } from 'child_process'
 import { homedir } from 'os'
+import { createHash } from 'crypto'
 
 export interface WorkspaceInfo {
   id: string
@@ -36,9 +37,17 @@ export function scanWorkspaces(root: string): WorkspaceInfo[] {
   return results
 }
 
+export interface ConfigDrift {
+  declared: string
+  actual: string
+  description: string
+}
+
 export interface DomainModel {
   kernel_version: string
   source_mode: 'fd_describe' | 'fp_synthesized'
+  spec_hash: string
+  config_drift: ConfigDrift | null
   package: {
     name: string
     assets: Array<{ name: string; markov: string[] }>
@@ -47,23 +56,82 @@ export interface DomainModel {
   }
 }
 
+// REQ-F-SPEC-002: parse asset definitions from Python package file
+function extractAssets(packagePath: string): Array<{ name: string; markov: string[] }> {
+  try {
+    const text = readFileSync(packagePath, 'utf8')
+    const assets: Array<{ name: string; markov: string[] }> = []
+    // Match: Asset(name="foo", ..., markov=["a", "b", ...]) — possibly multiline
+    const assetRegex = /Asset\s*\(\s*name\s*=\s*"([^"]+)"[^)]*?markov\s*=\s*\[([^\]]+)\]/gs
+    let m
+    while ((m = assetRegex.exec(text)) !== null) {
+      const name = m[1]
+      const markov = [...m[2].matchAll(/"([^"]+)"/g)].map((ma) => ma[1])
+      assets.push({ name, markov })
+    }
+    return assets
+  } catch {
+    return []
+  }
+}
+
+// REQ-F-TRUST-003: compute spec_hash from package file (first 16 hex chars of SHA-256)
+function computeSpecHash(packagePath: string): string {
+  try {
+    const text = readFileSync(packagePath, 'utf8')
+    return createHash('sha256').update(text).digest('hex').slice(0, 16)
+  } catch {
+    return '0'.repeat(16)
+  }
+}
+
+// REQ-F-DRIFT-001: check pythonpath entries and package reference for config drift
+function detectConfigDrift(workspacePath: string, yml: string): ConfigDrift | null {
+  const pythonpathMatch = /pythonpath:\s*\n((?:[ \t]*- .+\n)*)/m.exec(yml)
+  if (!pythonpathMatch) return null
+  const paths = [...pythonpathMatch[1].matchAll(/- (.+)/g)].map((m) => m[1].trim())
+  for (const p of paths) {
+    const full = join(workspacePath, p)
+    if (!existsSync(full)) {
+      return {
+        declared: p,
+        actual: full,
+        description: `pythonpath entry "${p}" declared in genesis.yml does not exist at ${full}`,
+      }
+    }
+  }
+  return null
+}
+
 // REQ-F-WS-001: synthesise domain model from genesis.yml + gaps output
 // gen describe does not exist in this engine version — synthesise directly
 export function getDomain(workspacePath: string): DomainModel {
   let kernelVersion = 'unknown'
   let packageName = basename(workspacePath)
+  let packageFilePath: string | null = null
+  let configDrift: ConfigDrift | null = null
+  let yml = ''
 
   try {
-    const yml = readFileSync(join(workspacePath, '.genesis', 'genesis.yml'), 'utf8')
+    yml = readFileSync(join(workspacePath, '.genesis', 'genesis.yml'), 'utf8')
     const verMatch = /version:\s*(.+)/.exec(yml)
     if (verMatch?.[1]) kernelVersion = verMatch[1].trim()
-    // Extract package name: "package: gtl_spec.packages.FOO:package" → "FOO"
-    const pkgMatch = /package:\s+[\w.]+\.(\w+):\w+/.exec(yml)
-    if (pkgMatch?.[1]) packageName = pkgMatch[1]
+    // Extract package module path: "package: gtl_spec.packages.genesis_manager:package"
+    const pkgMatch = /package:\s+([\w.]+):\w+/.exec(yml)
+    if (pkgMatch?.[1]) {
+      const modulePath = pkgMatch[1]
+      packageName = modulePath.split('.').pop() ?? packageName
+      packageFilePath = join(workspacePath, modulePath.replace(/\./g, '/') + '.py')
+    }
+    configDrift = detectConfigDrift(workspacePath, yml)
   } catch { /* ignore */ }
 
-  // Use gaps to get edge topology
+  const assets = packageFilePath ? extractAssets(packageFilePath) : []
+  const specHash = packageFilePath ? computeSpecHash(packageFilePath) : '0'.repeat(16)
+
+  // Use gaps to get edge topology + requirements
   let edges: DomainModel['package']['edges'] = []
+  let requirements: string[] = []
   try {
     const raw = execSync(
       `PYTHONPATH=.genesis python -m genesis gaps --workspace "${workspacePath}"`,
@@ -78,10 +146,20 @@ export function getDomain(workspacePath: string): DomainModel {
     }
   } catch { /* leave edges empty */ }
 
+  // Extract requirements from package file
+  if (packageFilePath) {
+    try {
+      const text = readFileSync(packageFilePath, 'utf8')
+      requirements = [...text.matchAll(/"(REQ-[A-Z0-9-]+)"/g)].map((m) => m[1])
+    } catch { /* ignore */ }
+  }
+
   return {
     kernel_version: kernelVersion,
     source_mode: 'fp_synthesized',
-    package: { name: packageName, assets: [], edges, requirements: [] },
+    spec_hash: specHash,
+    config_drift: configDrift,
+    package: { name: packageName, assets, edges, requirements },
   }
 }
 

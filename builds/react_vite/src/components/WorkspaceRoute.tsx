@@ -13,6 +13,8 @@ function stubDomain(name: string): DomainModel {
   return {
     kernel_version: 'unknown',
     source_mode: 'fp_synthesized',
+    spec_hash: '0'.repeat(16),
+    config_drift: null,
     package: { name, assets: [], edges: [], requirements: [] },
   }
 }

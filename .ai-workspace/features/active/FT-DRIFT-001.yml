@@ -1,0 +1,19 @@
+id: FT-DRIFT-001
+title: Workspace Drift Detection
+status: iterating
+satisfies:
+  - REQ-F-DRIFT-001
+  - REQ-F-DRIFT-002
+  - REQ-F-DRIFT-003
+  - REQ-F-DRIFT-004
+description: |
+  Answers INTENT Q8: "Is this ready to ship?" — strengthened beyond delta==0.
+  Detects mismatch between build root declared in spec and paths in
+  .genesis/genesis.yml; surfaces as inline warning. Distinguishes
+  missing-because-not-built (expected) from missing-after-convergence
+  (inconsistent workspace). Summarises repeated genesis_installed events as
+  setup history rather than individual stream entries. Ready-to-ship requires
+  total_delta==0 AND no drift warnings AND no stale assessments.
+dependencies:
+  - FT-WS-001
+  - FT-STATE-001

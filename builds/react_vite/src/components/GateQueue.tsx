@@ -2,7 +2,7 @@
 // Implements: REQ-F-GATE-005, REQ-F-GATE-006, REQ-F-GATE-007, REQ-F-GATE-008
 
 import { useState } from 'react'
-import type { PendingGate, GateCardProps, FocusedEntity } from '../types'
+import type { PendingGate, ProxyDecision, GateCardProps, FocusedEntity } from '../types'
 
 function GateCard({ gate, onApprove, onReject }: GateCardProps) {
   const [rejectReason, setRejectReason] = useState('')
@@ -82,32 +82,138 @@ function GateCard({ gate, onApprove, onReject }: GateCardProps) {
   )
 }
 
+// REQ-F-GATE-005, REQ-F-GATE-006: display proxy decisions and allow human override
+interface ProxyDecisionCardProps {
+  decision: ProxyDecision
+  onOverride: (approved: boolean, reason?: string) => void
+}
+
+function ProxyDecisionCard({ decision, onOverride }: ProxyDecisionCardProps) {
+  const [showOverride, setShowOverride] = useState(false)
+  const [overrideReason, setOverrideReason] = useState('')
+
+  return (
+    <div className="border border-blue-900/40 rounded p-3 bg-blue-950/20 space-y-2">
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="font-mono text-sm text-gray-200">{decision.edge}</div>
+          {decision.feature && <div className="text-xs text-gray-500">{decision.feature}</div>}
+          <div className="text-xs text-gray-500">{decision.eventTime}</div>
+        </div>
+        <span
+          className={`px-2 py-1 text-xs rounded ${
+            decision.decision === 'approved'
+              ? 'bg-green-900/40 text-green-300'
+              : 'bg-red-900/40 text-red-300'
+          }`}
+        >
+          proxy-{decision.decision}
+        </span>
+      </div>
+      {decision.proxyLog && (
+        <div className="text-xs text-gray-500 font-mono truncate" title={decision.proxyLog}>
+          {decision.proxyLog}
+        </div>
+      )}
+      {!showOverride ? (
+        <button
+          className="text-xs text-blue-400 hover:text-blue-300 underline"
+          onClick={() => setShowOverride(true)}
+        >
+          Override proxy decision
+        </button>
+      ) : (
+        <div className="space-y-2">
+          <div className="text-xs text-gray-400">Override this proxy decision:</div>
+          <textarea
+            className="w-full bg-gray-800 border border-gray-700 text-gray-200 rounded p-2 text-xs placeholder-gray-500"
+            placeholder="Reason for override (optional for approve, required for reject)"
+            value={overrideReason}
+            onChange={(e) => setOverrideReason(e.target.value)}
+            rows={2}
+          />
+          <div className="flex gap-2">
+            <button
+              className="px-2 py-1 bg-green-700 text-white text-xs rounded hover:bg-green-600"
+              onClick={() => onOverride(true, overrideReason || undefined)}
+            >
+              Approve
+            </button>
+            <button
+              className="px-2 py-1 bg-red-900/40 text-red-300 text-xs rounded border border-red-900/60 disabled:opacity-50"
+              disabled={!overrideReason.trim()}
+              onClick={() => onOverride(false, overrideReason)}
+            >
+              Reject
+            </button>
+            <button
+              className="px-2 py-1 text-gray-400 text-xs rounded hover:bg-gray-800"
+              onClick={() => setShowOverride(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 interface GateQueueProps {
   gates: PendingGate[]
+  proxyDecisions: ProxyDecision[]
   workspaceId: string
   onFocus: (entity: FocusedEntity) => void
   onGateDecision: (gate: PendingGate, approved: boolean, reason?: string) => Promise<void>
+  onProxyOverride?: (decision: ProxyDecision, approved: boolean, reason?: string) => Promise<void>
 }
 
-export function GateQueue({ gates, workspaceId: _workspaceId, onFocus: _onFocus, onGateDecision }: GateQueueProps) {
+export function GateQueue({
+  gates,
+  proxyDecisions,
+  workspaceId: _workspaceId,
+  onFocus: _onFocus,
+  onGateDecision,
+  onProxyOverride,
+}: GateQueueProps) {
   const pending = gates.filter((g) => g.state === 'pending')
 
   return (
-    <div className="p-4 space-y-3">
+    <div className="p-4 space-y-4">
       <div className="text-sm font-medium text-gray-300">
         Gate Queue ({pending.length} pending)
       </div>
-      {gates.length === 0 ? (
+      {gates.length === 0 && proxyDecisions.length === 0 ? (
         <div className="text-sm text-gray-500">No pending gates</div>
       ) : (
-        gates.map((gate, i) => (
-          <GateCard
-            key={`${gate.edge}-${i}`}
-            gate={gate}
-            onApprove={(reason) => onGateDecision(gate, true, reason)}
-            onReject={(reason) => onGateDecision(gate, false, reason)}
-          />
-        ))
+        <>
+          {gates.map((gate, i) => (
+            <GateCard
+              key={`${gate.edge}-${i}`}
+              gate={gate}
+              onApprove={(reason) => onGateDecision(gate, true, reason)}
+              onReject={(reason) => onGateDecision(gate, false, reason)}
+            />
+          ))}
+          {proxyDecisions.length > 0 && (
+            <div className="space-y-2">
+              <div className="text-xs font-medium text-blue-400 uppercase tracking-wide">
+                Proxy Decisions ({proxyDecisions.length})
+              </div>
+              {proxyDecisions.map((pd, i) => (
+                <ProxyDecisionCard
+                  key={`proxy-${pd.edge}-${i}`}
+                  decision={pd}
+                  onOverride={(approved, reason) =>
+                    onProxyOverride
+                      ? onProxyOverride(pd, approved, reason)
+                      : Promise.resolve()
+                  }
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   )

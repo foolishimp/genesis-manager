@@ -1,0 +1,14 @@
+id: FT-WS-002
+title: Domain Model Provenance Display
+status: iterating
+satisfies:
+  - REQ-F-WS-013
+  - REQ-F-WS-014
+  - REQ-F-WS-015
+description: |
+  Every rendered domain model declares its acquisition mode (fd_describe vs
+  fp_synthesized) beside the package name. Synthesised models display an
+  explicit warning that they are not zero-interpretation. Both paths produce
+  the same normalised shape; UI components bind to shape, not acquisition mode.
+dependencies:
+  - FT-WS-001

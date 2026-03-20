@@ -1,0 +1,20 @@
+id: FT-EVT-001
+title: Event Stream and Session Watermark
+status: iterating
+satisfies:
+  - REQ-F-EVT-001
+  - REQ-F-EVT-002
+  - REQ-F-EVT-003
+  - REQ-F-EVT-004
+  - REQ-F-EVT-005
+  - REQ-F-EVT-006
+  - REQ-F-EVT-007
+description: |
+  Answers INTENT Q6 and Q7: "Why should I trust its status?" and "What changed?"
+  Reads events.jsonl chronologically. Displays event_type, event_time, data fields
+  with type/edge/time filtering and full detail view per event. Maintains a durable
+  per-project session watermark; events newer than the watermark are visually
+  distinct with an unread badge. Watermark advances only on explicit operator action
+  ("mark as seen") — never automatically mid-session.
+dependencies:
+  - FT-WS-001

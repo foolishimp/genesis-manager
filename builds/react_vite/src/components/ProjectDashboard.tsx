@@ -10,6 +10,7 @@ import type {
   WorkspaceEvent,
   FeatureVector,
   PendingGate,
+  ProxyDecision,
   EngineState,
   FocusedEntity,
   ConfigDrift,
@@ -65,6 +66,23 @@ function deriveGates(events: WorkspaceEvent[]): PendingGate[] {
   return Array.from(gates.values())
 }
 
+// REQ-F-GATE-005: surface proxy-log decisions from review_approved events with actor=human-proxy
+function deriveProxyDecisions(events: WorkspaceEvent[]): ProxyDecision[] {
+  return events
+    .filter(
+      (e) =>
+        (e.event_type === 'review_approved' || e.event_type === 'review_rejected') &&
+        e.data.actor === 'human-proxy',
+    )
+    .map((e) => ({
+      edge: (e.data.edge as string) ?? e.edge ?? '',
+      feature: (e.data.feature as string) ?? null,
+      decision: e.event_type === 'review_approved' ? 'approved' : 'rejected',
+      eventTime: e.event_time,
+      proxyLog: (e.data.proxy_log as string) ?? null,
+    }))
+}
+
 function deriveEngineState(gapReport: GapReport | null): EngineState {
   if (!gapReport) return { status: 'idle' }
   if (gapReport.total_delta === 0) return { status: 'converged' }
@@ -79,7 +97,11 @@ function deriveEngineState(gapReport: GapReport | null): EngineState {
   return { status: 'idle' }
 }
 
-function detectDrift(events: WorkspaceEvent[]): {
+// REQ-F-DRIFT-001: installChurn from events; configDrift from domain (server-computed)
+function detectDrift(
+  events: WorkspaceEvent[],
+  domainConfigDrift: ConfigDrift | null,
+): {
   configDrift: ConfigDrift | null
   installChurn: InstallChurn | null
   layoutInconsistencies: string[]
@@ -89,7 +111,7 @@ function detectDrift(events: WorkspaceEvent[]): {
     installs.length > 2
       ? { count: installs.length, lastInstallTime: installs[installs.length - 1]?.event_time ?? '' }
       : null
-  return { configDrift: null, installChurn, layoutInconsistencies: [] }
+  return { configDrift: domainConfigDrift, installChurn, layoutInconsistencies: [] }
 }
 
 // isReadyToShip derivation — REQ-F-DRIFT-004
@@ -170,9 +192,17 @@ export function ProjectDashboard({ workspacePath, domain, refreshIntervalMs }: P
   }, [refreshGaps, refreshEvents, refreshIntervalMs])
 
   const gates = deriveGates(events)
+  const proxyDecisions = deriveProxyDecisions(events)
   const engineState = deriveEngineState(gapReport)
-  const { configDrift, installChurn, layoutInconsistencies } = detectDrift(events)
-  const staleAssessmentCount = 0 // TODO: derive from fp_assessments with mismatched spec_hash
+  const { configDrift, installChurn, layoutInconsistencies } = detectDrift(events, domain.config_drift ?? null)
+  // REQ-F-TRUST-003: count fp_assessment events whose spec_hash differs from current
+  const currentSpecHash = domain.spec_hash ?? ''
+  const staleAssessmentCount = events.filter(
+    (e) =>
+      e.event_type === 'fp_assessment' &&
+      typeof e.data.spec_hash === 'string' &&
+      e.data.spec_hash !== currentSpecHash,
+  ).length
   const isReadyToShip = computeReadyToShip(gapReport, configDrift, layoutInconsistencies, staleAssessmentCount)
 
   const gapsByEdge = new Map(
@@ -186,6 +216,21 @@ export function ProjectDashboard({ workspacePath, domain, refreshIntervalMs }: P
         edge: gate.edge,
         feature: gate.feature ?? null,
         actor: 'human',
+        ...(reason ? { reason } : {}),
+      },
+    })
+    await refreshEvents()
+  }
+
+  // REQ-F-GATE-006: human can override a proxy-approved gate
+  async function handleProxyOverride(decision: ProxyDecision, approved: boolean, reason?: string) {
+    await emitEvent(wsId, {
+      type: approved ? 'review_approved' : 'review_rejected',
+      data: {
+        edge: decision.edge,
+        feature: decision.feature ?? null,
+        actor: 'human',
+        override_of: 'human-proxy',
         ...(reason ? { reason } : {}),
       },
     })
@@ -274,9 +319,11 @@ export function ProjectDashboard({ workspacePath, domain, refreshIntervalMs }: P
         {activePanel === 'gates' && (
           <GateQueue
             gates={gates}
+            proxyDecisions={proxyDecisions}
             workspaceId={wsId}
             onFocus={setFocusedEntity}
             onGateDecision={handleGateDecision}
+            onProxyOverride={handleProxyOverride}
           />
         )}
         {activePanel === 'control' && (

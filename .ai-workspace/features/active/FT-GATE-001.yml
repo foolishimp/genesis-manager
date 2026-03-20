@@ -1,0 +1,24 @@
+id: FT-GATE-001
+title: Human Gate Queue
+status: iterating
+satisfies:
+  - REQ-F-GATE-001
+  - REQ-F-GATE-002
+  - REQ-F-GATE-003
+  - REQ-F-GATE-004
+  - REQ-F-GATE-005
+  - REQ-F-GATE-006
+  - REQ-F-GATE-007
+  - REQ-F-GATE-008
+description: |
+  Answers INTENT Q5: "What does the engine need from me right now?"
+  Surfaces pending fh_gate_pending events with criteria displayed verbatim.
+  Approve (review_approved, actor=human) and reject (review_rejected, actor=human,
+  reason required) actions. Surfaces proxy-log decisions for human review with
+  actor, decision, timestamp, and log link. Human can override a proxy decision.
+  Gate state model derived from event stream: pending | approved | rejected |
+  superseded. Rejection pauses the edge; prior work preserved.
+dependencies:
+  - FT-WS-001
+  - FT-EVT-001
+  - FT-STATE-001

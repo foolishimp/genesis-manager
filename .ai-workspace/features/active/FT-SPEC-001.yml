@@ -1,0 +1,18 @@
+id: FT-SPEC-001
+title: GTL Package and Graph Topology Display
+status: iterating
+satisfies:
+  - REQ-F-SPEC-001
+  - REQ-F-SPEC-002
+  - REQ-F-SPEC-003
+  - REQ-F-SPEC-004
+  - REQ-F-SPEC-005
+  - REQ-F-SPEC-006
+description: |
+  Answers INTENT Q1: "What is this project building?"
+  Surfaces the GTL Package as the project's constitutional graph: assets with
+  markov conditions, edges with source/target/co_evolve, evaluators per edge
+  with F_D/F_P/F_H category, and full requirements registry. Renders graph
+  topology as a visual diagram (nodes = assets, edges = transitions).
+dependencies:
+  - FT-WS-001

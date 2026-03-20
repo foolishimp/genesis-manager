@@ -1,0 +1,1 @@
+{"event_type": "bug_fixed", "event_time": "2026-03-16T22:17:39.365162+00:00", "data": {"description": "UI colour inconsistency \u2014 garish light status backgrounds and dark-on-dark text replaced with consistent dark-theme palette across all components", "file": "builds/react_vite/src/components/", "root_cause": "coding_error"}}

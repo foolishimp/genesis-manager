@@ -9,6 +9,8 @@ import type { DomainModel, EdgeGap } from '../types'
 const domain: DomainModel = {
   kernel_version: '0.1.5',
   source_mode: 'fd_describe',
+  spec_hash: 'abc123',
+  config_drift: null,
   package: {
     name: 'test',
     assets: [

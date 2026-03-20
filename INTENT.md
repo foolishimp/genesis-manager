@@ -1,9 +1,9 @@
 # Intent — genesis_manager
 
 **ID**: INT-001
-**Version**: 0.2.0
-**Date**: 2026-03-16
-**Status**: Approved
+**Version**: 0.3.0
+**Date**: 2026-03-19
+**Status**: Draft — pending approval
 
 ---
 
@@ -36,6 +36,15 @@ The product must answer these questions at any moment:
 7. What changed since I last looked? (event stream delta)
 8. Is this ready to ship? (full convergence, UAT state)
 
+**v0.3.0 additions** — the console must also:
+
+9.  Provide a dedicated Supervision page — the primary working surface for a human supervisor: sticky human gate queue, scrollable feature list with status, and an autonomous mode toggle that enables unattended iteration.
+10. Provide an Evidence Browser — unified view of gap analysis and event history with a REQ-key traceability table (REQ → feature vectors → tagged source files).
+11. Provide a Feature Detail page — per-feature view of edge status, iteration summaries, linked events, and artifact content; reachable by direct URL.
+12. Provide a Release page — evaluate release readiness (delta = 0, no drift, no stale assessments), summarise release scope from converged features, suggest a version, and initiate a release.
+13. Every technical identifier is a bookmarkable URL — feature IDs, REQ keys, event indices, edge names all resolve to stable deep-link routes.
+14. Spawn a new feature from the UI — raise a new feature vector directly from the supervision console without CLI.
+
 ---
 
 ## Architectural Scope
@@ -50,6 +59,23 @@ The abiogenesis layer defines:
 - **Gap report**: `gen gaps` output — delta per edge, failing/passing evaluators
 
 genesis_manager works over any project that has a `.genesis/genesis.yml` and `.ai-workspace/`.
+
+---
+
+## Navigation Model
+
+genesis_manager is a **multi-page application**. Each page has a stable URL.
+
+| Page | Route | Purpose |
+|------|-------|---------|
+| Project list | `/` | Discover and open projects |
+| Overview | `/project/:id` | Dashboard summary — feature status, attention signals, readiness |
+| Supervision | `/project/:id/supervision` | Primary working surface — gate queue + feature list + auto-mode |
+| Evidence | `/project/:id/evidence` | Gap analysis + event browser + traceability table |
+| Feature detail | `/project/:id/feature/:featureId` | Per-feature deep-dive |
+| Release | `/project/:id/release` | Release readiness, scope, version, initiation |
+| REQ detail | `/project/:id/req/:reqKey` | Requirement traceability |
+| Event detail | `/project/:id/event/:eventIndex` | Event payload and linked context |
 
 ---
 
@@ -81,6 +107,20 @@ The GTL Package is the project's constitution. Surface it first:
 - Approve / reject human gates
 - Trigger gen-start or gen-iterate (via subprocess)
 - Surface proxy-log decisions for human review
+- Toggle autonomous mode (--auto --human-proxy)
+- Spawn a new feature vector from the UI
+
+### Layer 6 — Traceability
+- REQ key → feature vectors that satisfy it
+- REQ key → source files tagged with `// Implements: REQ-*`
+- REQ key → test files tagged with `// Validates: REQ-*`
+- Full traceability matrix: all REQ keys × all features
+
+### Layer 7 — Release
+- Release readiness: delta = 0 AND no drift AND no stale assessments
+- Release scope: features converged since last release tag
+- Version suggestion: derived from scope (breaking / feature / patch)
+- Release initiation: emit release event, tag the workspace
 
 ---
 

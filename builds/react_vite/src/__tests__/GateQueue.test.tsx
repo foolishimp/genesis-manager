@@ -23,6 +23,7 @@ describe('GateQueue', () => {
         gates={[]}
         workspaceId="/workspace"
         onFocus={noop}
+        proxyDecisions={[]}
         onGateDecision={vi.fn().mockResolvedValue(undefined)}
       />,
     )
@@ -35,6 +36,7 @@ describe('GateQueue', () => {
         gates={[pendingGate]}
         workspaceId="/workspace"
         onFocus={noop}
+        proxyDecisions={[]}
         onGateDecision={vi.fn().mockResolvedValue(undefined)}
       />,
     )
@@ -48,6 +50,7 @@ describe('GateQueue', () => {
         gates={[pendingGate]}
         workspaceId="/workspace"
         onFocus={noop}
+        proxyDecisions={[]}
         onGateDecision={vi.fn().mockResolvedValue(undefined)}
       />,
     )
@@ -60,6 +63,7 @@ describe('GateQueue', () => {
       <GateQueue
         gates={[pendingGate]}
         workspaceId="/workspace"
+        proxyDecisions={[]}
         onFocus={noop}
         onGateDecision={onDecision}
       />,
@@ -74,6 +78,7 @@ describe('GateQueue', () => {
         gates={[pendingGate]}
         workspaceId="/workspace"
         onFocus={noop}
+        proxyDecisions={[]}
         onGateDecision={vi.fn().mockResolvedValue(undefined)}
       />,
     )

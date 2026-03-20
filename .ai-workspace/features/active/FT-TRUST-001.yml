@@ -1,0 +1,20 @@
+id: FT-TRUST-001
+title: Trust Panel and Evidence Currentness
+status: iterating
+satisfies:
+  - REQ-F-TRUST-001
+  - REQ-F-TRUST-002
+  - REQ-F-TRUST-003
+description: |
+  Answers INTENT Q6: "Why should I trust its current status?"
+  All displayed evidence carries a currentness marker: current, stale (spec
+  changed since assessment), superseded, or synthesised. Trust panel visible
+  on every project view: shows when gap state was last computed, when the last
+  event was appended, how the domain model was acquired, and whether any
+  displayed assessments are stale. Stale assessment detection: compares each
+  fp_assessment's spec_hash against the current package hash; stale assessments
+  shown with warning, not suppressed.
+dependencies:
+  - FT-STATE-001
+  - FT-EVT-001
+  - FT-WS-001
