@@ -16,8 +16,8 @@ __pycache__/
 .pytest_cache/
 .coverage
 
-# Bootstrap compiler — installed, not committed
-.genesis/
+# Bootstrap compiler — committed until packaged
+# .genesis/
 
 # Engine runtime artifacts
 .ai-workspace/fp_manifests/
